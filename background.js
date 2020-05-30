@@ -11,14 +11,14 @@ function getLinkedUrl(url) {
     return null
 }
 
-function bypass() {
+function bypass(tab) {
     browser.tabs.query({ currentWindow: true, active: true }).then((tabs) => {
         const tab = tabs[0]
         const currentUrl = tab.url
         const linkedUrl = getLinkedUrl(currentUrl)
 
         if (linkedUrl != null) {
-            browser.tabs.update(tab.id, { url: linkedUrl });
+            browser.tabs.update(tab.id, { url: linkedUrl })
         }
     })
 }

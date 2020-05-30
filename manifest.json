@@ -1,22 +1,25 @@
 {
-
-  "description": "Bypasses tracking host and redirect to the URL linked in the query parameter",
-  "manifest_version": 2,
-  "name": "Bypass",
-  "version": "1.0",
-  "homepage_url": "https://github.com/CrendKing/bypass",
-  "icons": {
-    "48": "icons/bypass-48.png"
-  },
-  "permissions": ["tabs"],
-
-  "background": {
-    "scripts": ["background.js"]
-  },
-
-  "browser_action": {
-    "default_icon": {
-      "48": "icons/bypass-48.png"
+    "description": "Bypasses tracking host and redirect to the URL linked in the query parameter",
+    "manifest_version": 2,
+    "name": "Bypass",
+    "version": "1.0",
+    "homepage_url": "https://github.com/CrendKing/bypass",
+    "icons": {
+        "100": "icons/bypass.png"
+    },
+    "browser_specific_settings": {
+        "gecko": {
+          "id": "bypass@CrendKing"
+        }
+    },
+    "permissions": [
+        "tabs"
+    ],
+    "background": {
+        "scripts": ["background.js"]
+    },
+    "browser_action": {
+        "default_icon": "icons/bypass.png",
+        "default_title": "Bypass"
     }
-  }
 }

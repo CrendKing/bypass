@@ -1,26 +1,46 @@
-function getLinkedUrl(url) {
-    const urlObj = new URL(url)
-    const params = urlObj.searchParams
+let g_hosts
 
-    for (const paramValue of params.values()) {
-        if (paramValue.startsWith('http://') || paramValue.startsWith('https://')) {
-            return paramValue
-        }
-    }
-
-    return null
-}
-
-function bypass(tab) {
-    browser.tabs.query({ currentWindow: true, active: true }).then((tabs) => {
-        const tab = tabs[0]
-        const currentUrl = tab.url
-        const linkedUrl = getLinkedUrl(currentUrl)
-
-        if (linkedUrl != null) {
-            browser.tabs.update(tab.id, { url: linkedUrl })
-        }
+function refreshListener() {
+    browser.tabs.onUpdated.removeListener(handleTabUpdate)
+    browser.tabs.onUpdated.addListener(handleTabUpdate, {
+        urls: g_hosts,
+        properties: ['status'],
     })
 }
 
-browser.browserAction.onClicked.addListener(bypass)
+function bypass(tabId, tabUrl) {
+    const urlObj = new URL(tabUrl)
+    for (const paramValue of urlObj.searchParams.values()) {
+        if (paramValue.startsWith('http://') || paramValue.startsWith('https://')) {
+            const hostPattern = `*://${urlObj.hostname}/*`
+            if (!g_hosts.includes(hostPattern)) {
+                g_hosts.push(hostPattern)
+                browser.storage.local.set({ hosts: g_hosts })
+                refreshListener()
+            }
+
+            browser.tabs.update(tabId, { url: paramValue })
+        }
+    }
+}
+
+function handleClick(tab) {
+    browser.tabs.query({ currentWindow: true, active: true }).then((tabs) => {
+        bypass(tab.id, tab.url)
+    })
+}
+
+function handleTabUpdate(tabId, changeInfo, tabInfo) {
+    if (tabInfo.status === 'complete' && tabInfo.active) {
+        bypass(tabId, tabInfo.url)
+    }
+}
+
+browser.browserAction.onClicked.addListener(handleClick)
+
+browser.storage.local.get({ hosts: [] }).then((items) => {
+    g_hosts = items.hosts
+    if (g_hosts.length > 0) {
+        refreshListener()
+    }
+})

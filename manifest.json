@@ -2,7 +2,7 @@
     "description": "Bypasses tracking host and redirect to the URL linked in the query parameter",
     "manifest_version": 2,
     "name": "Bypass",
-    "version": "1.0",
+    "version": "1.1",
     "homepage_url": "https://github.com/CrendKing/bypass",
     "icons": {
         "100": "icons/bypass.png"
@@ -13,7 +13,8 @@
         }
     },
     "permissions": [
-        "tabs"
+        "tabs",
+        "storage"
     ],
     "background": {
         "scripts": ["background.js"]
@@ -21,5 +22,8 @@
     "browser_action": {
         "default_icon": "icons/bypass.png",
         "default_title": "Bypass"
+    },
+    "commands": {
+      "_execute_browser_action": {}
     }
 }

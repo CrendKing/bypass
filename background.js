@@ -8,19 +8,38 @@ function refreshListener() {
     })
 }
 
-function bypass(tabId, tabUrl) {
-    const urlObj = new URL(tabUrl)
+/*
+parameter may be an URL to the destination site
+it could be an nested redirection URL with arbitrary levels
+use recursion to find the final destination (which contains no redirection)
+*/
+function findFinalDestination(urlObj) {
     for (const paramValue of urlObj.searchParams.values()) {
         if (paramValue.startsWith('http://') || paramValue.startsWith('https://')) {
-            const hostPattern = `*://${urlObj.hostname}/*`
-            if (!g_hosts.includes(hostPattern)) {
-                g_hosts.push(hostPattern)
-                browser.storage.local.set({ hosts: g_hosts })
-                refreshListener()
+            const ret = findFinalDestination(new URL(paramValue))
+            if (ret) {
+                return ret
+            } else {
+                return paramValue
             }
-
-            browser.tabs.update(tabId, { url: paramValue })
         }
+    }
+
+    return null
+}
+
+function bypass(tabId, url) {
+    const urlObj = new URL(url)
+    const dest = findFinalDestination(urlObj)
+    if (dest) {
+        const hostPattern = `*://${urlObj.hostname}/*`
+        if (!g_hosts.includes(hostPattern)) {
+            g_hosts.push(hostPattern)
+            browser.storage.local.set({ hosts: g_hosts })
+            refreshListener()
+        }
+
+        browser.tabs.update(tabId, { url: dest })
     }
 }
 
@@ -31,8 +50,8 @@ function handleClick(tab) {
 }
 
 function handleTabUpdate(tabId, changeInfo, tabInfo) {
-    if (tabInfo.status === 'complete' && tabInfo.active) {
-        bypass(tabId, tabInfo.url)
+    if (changeInfo.status === 'complete' && changeInfo.url && tabInfo.active) {
+        bypass(tabId, changeInfo.url)
     }
 }
 
